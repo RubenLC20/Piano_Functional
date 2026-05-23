@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PianoOnline.es — Toca el piano gratis desde tu navegador</title>
+<meta name="description" content="Piano online gratis. Toca el piano desde tu navegador sin instalar nada. Múltiples instrumentos, lecciones y canciones guiadas.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0d0f;
+    --bg2: #17171b;
+    --bg3: #1f1f25;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.13);
+    --text: #f0eee8;
+    --muted: #888680;
+    --accent: #c8a96e;
+    --accent2: #e8c98a;
+    --purple: #7c6fcd;
+    --white-key: #f5f2eb;
+    --white-hover: #e8e4d8;
+    --white-pressed: #d4c9a8;
+    --black-key: #1a1a1e;
+    --black-hover: #2e2e38;
+    --black-pressed: #3a3550;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NAVBAR ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(13,13,15,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .logo svg { width: 28px; height: 28px; }
+
+  .nav-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .nav-link {
+    padding: 6px 16px;
+    font-size: 14px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: color 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  .nav-link:hover { color: var(--text); }
+
+  .nav-premium {
+    padding: 7px 18px;
+    font-size: 13px;
+    font-weight: 500;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: #1a1200;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: opacity 0.2s;
+  }
+
+  .nav-premium:hover { opacity: 0.88; }
+
+  /* ── AD BANNER ── */
+  .ad-banner {
+    margin: 14px 32px;
+    background: var(--bg2);
+    border: 1px dashed var(--border2);
+    border-radius: 10px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--muted);
+    font-size: 12px;
+  }
+
+  /* ── HERO ── */
+  .hero-text {
+    text-align: center;
+    padding: 32px 32px 20px;
+  }
+
+  .hero-text h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 42px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.15;
+    margin-bottom: 10px;
+  }
+
+  .hero-text h1 span { color: var(--accent); }
+
+  .hero-text p {
+    font-size: 15px;
+    color: var(--muted);
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    display: grid;
+    grid-template-columns: 1fr 200px;
+    gap: 18px;
+    padding: 0 32px 32px;
+  }
+
+  /* ── PIANO CARD ── */
+  .piano-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+
+  .controls-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .ctrl-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-right: 4px;
+  }
+
+  .ins-btn {
+    padding: 5px 14px;
+    font-size: 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border2);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .ins-btn:hover { color: var(--text); border-color: rgba(255,255,255,0.25); }
+
+  .ins-btn.active {
+    background: rgba(200,169,110,0.15);
+    color: var(--accent);
+    border-color: rgba(200,169,110,0.4);
+  }
+
+  .octave-ctrl {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .oct-btn {
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--bg3);
+    color: var(--text);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+
+  .oct-btn:hover { background: var(--border2); }
+
+  /* ── PIANO KEYS ── */
+  .piano-container {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .piano {
+    position: relative;
+    display: flex;
+    height: 170px;
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .white-key {
+    width: 48px;
+    height: 160px;
+    background: var(--white-key);
+    border: 1px solid #b8b0a0;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    cursor: pointer;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.05s;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 8px;
+    user-select: none;
+  }
+
+  .white-key:hover { background: var(--white-hover); }
+  .white-key.pressed { background: var(--white-pressed); }
+
+  .white-key .klabel {
+    font-size: 10px;
+    color: #888;
+    font-family: 'DM Sans', sans-serif;
+    pointer-events: none;
+  }
+
+  .black-key {
+    width: 30px;
+    height: 100px;
+    background: var(--black-key);
+    border-radius: 0 0 6px 6px;
+    cursor: pointer;
+    position: absolute;
+    z-index: 2;
+    top: 0;
+    transition: background 0.05s;
+    user-select: none;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 6px;
+  }
+
+  .black-key:hover { background: var(--black-hover); }
+  .black-key.pressed { background: var(--black-pressed); }
+
+  .black-key .klabel {
+    font-size: 9px;
+    color: #666;
+    font-family: 'DM Sans', sans-serif;
+    pointer-events: none;
+  }
+
+  /* ── NOTE DISPLAY ── */
+  .note-display {
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 30px;
+  }
+
+  .note-badge {
+    padding: 4px 14px;
+    border-radius: 20px;
+    background: rgba(200,169,110,0.15);
+    color: var(--accent);
+    font-size: 13px;
+    font-weight: 500;
+    animation: notepop 0.15s ease;
+  }
+
+  @keyframes notepop {
+    from { transform: scale(0.8); opacity: 0.4; }
+    to { transform: scale(1); opacity: 1; }
+  }
+
+  .kbd-hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 12px;
+    line-height: 1.7;
+  }
+
+  /* ── FEATURES ── */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .feat {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px;
+  }
+
+  .feat-icon {
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+
+  .feat h3 {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .feat p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .feat-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 11px;
+    padding: 2px 9px;
+    border-radius: 20px;
+    background: rgba(200,169,110,0.12);
+    color: var(--accent);
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .premium-card {
+    background: linear-gradient(160deg, #1e1a32, #17171b);
+    border: 1px solid rgba(124,111,205,0.35);
+    border-radius: 14px;
+    padding: 18px;
+  }
+
+  .premium-card h4 {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .premium-price {
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--purple);
+    margin-bottom: 14px;
+  }
+
+  .premium-price span {
+    font-size: 13px;
+    color: var(--muted);
+    font-weight: 400;
+  }
+
+  .premium-list {
+    list-style: none;
+    margin-bottom: 16px;
+  }
+
+  .premium-list li {
+    font-size: 12px;
+    color: #aaa;
+    padding: 4px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .check { color: var(--purple); font-size: 14px; }
+
+  .upgrade-btn {
+    width: 100%;
+    padding: 10px;
+    background: var(--purple);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: opacity 0.2s;
+  }
+
+  .upgrade-btn:hover { opacity: 0.85; }
+
+  .trial-note {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+
+  .donate-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .donate-card p {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+
+  .donate-btn {
+    width: 100%;
+    padding: 9px;
+    background: #FF5E5B;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: opacity 0.2s;
+  }
+
+  .donate-btn:hover { opacity: 0.88; }
+
+  .ad-side {
+    background: var(--bg2);
+    border: 1px dashed var(--border2);
+    border-radius: 14px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: var(--muted);
+    font-size: 11px;
+    min-height: 240px;
+  }
+
+  .ad-icon { font-size: 28px; opacity: 0.4; }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    padding: 20px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .footer-links {
+    display: flex;
+    gap: 20px;
+  }
+
+  .footer-links a {
+    font-size: 12px;
+    color: var(--muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--text); }
+
+  .footer-copy {
+    font-size: 12px;
+    color: var(--muted);
+  }
+
+  /* ── VOLUME ── */
+  .volume-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  .volume-row label { font-size: 12px; color: var(--muted); }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border2);
+    outline: none;
+    width: 100px;
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="logo" href="#">
+    <svg viewBox="0 0 28 28" fill="none">
+      <rect x="2" y="6" width="24" height="16" rx="2" stroke="currentColor" stroke-width="1.5"/>
+      <rect x="5" y="6" width="3" height="10" rx="1" fill="currentColor" opacity="0.8"/>
+      <rect x="10.5" y="6" width="3" height="10" rx="1" fill="currentColor" opacity="0.8"/>
+      <rect x="16" y="6" width="3" height="10" rx="1" fill="currentColor" opacity="0.8"/>
+      <rect x="21.5" y="6" width="2" height="10" rx="1" fill="currentColor" opacity="0.8"/>
+    </svg>
+    PianoOnline.es
+  </a>
+  <div class="nav-links">
+    <button class="nav-link">🎵 Lecciones</button>
+    <button class="nav-link">🎼 Canciones</button>
+    <button class="nav-link">ℹ️ Acerca de</button>
+    <button class="nav-premium">✦ Premium</button>
+  </div>
+</nav>
+
+<!-- AD BANNER TOP -->
+<div class="ad-banner">
+  📢 &nbsp; Espacio publicitario — Google AdSense 728×90 &nbsp; | &nbsp; <em>Tu anuncio aquí</em>
+</div>
+
+<!-- HERO -->
+<div class="hero-text">
+  <h1>Toca el piano<br><span>online, gratis.</span></h1>
+  <p>Sin descargas, sin registro. Usa el teclado o el ratón y empieza a hacer música ahora mismo.</p>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div>
+    <!-- PIANO CARD -->
+    <div class="piano-card">
+      <div class="controls-row">
+        <span class="ctrl-label">Instrumento:</span>
+        <button class="ins-btn active" onclick="setInstrument('piano',this)">🎹 Piano</button>
+        <button class="ins-btn" onclick="setInstrument('organ',this)">🎻 Órgano</button>
+        <button class="ins-btn" onclick="setInstrument('synth',this)">🎛️ Synth</button>
+        <div class="octave-ctrl">
+          <button class="oct-btn" onclick="changeOctave(-1)">−</button>
+          <span>Octava <strong id="oct-label" style="color:var(--text)">4</strong></span>
+          <button class="oct-btn" onclick="changeOctave(1)">+</button>
+        </div>
+      </div>
+
+      <div class="volume-row">
+        <label>🔊 Volumen</label>
+        <input type="range" min="0" max="100" value="70" id="vol-slider" oninput="setVolume(this.value)">
+        <span id="vol-label" style="font-size:12px;color:var(--muted)">70%</span>
+      </div>
+
+      <div class="piano-container" style="margin-top:16px;">
+        <div class="piano" id="piano"></div>
+      </div>
+
+      <div class="note-display" id="note-display">
+        <span style="font-size:13px;color:var(--muted)">Toca una tecla para empezar...</span>
+      </div>
+
+      <div class="kbd-hint">
+        ⌨️ &nbsp;<strong style="color:var(--text)">Teclado:</strong> A S D F G H J K L &nbsp;|&nbsp;
+        <strong style="color:var(--text)">Sostenidos:</strong> W E T Y U O P &nbsp;|&nbsp;
+        <strong style="color:var(--text)">Octava:</strong> Z / X
+      </div>
+    </div>
+
+    <!-- FEATURE CARDS -->
+    <div class="features">
+      <div class="feat">
+        <div class="feat-icon">🎹</div>
+        <h3>Múltiples instrumentos</h3>
+        <p>Piano de cola, órgano Hammond y sintetizador con sonidos realistas.</p>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🎙️</div>
+        <h3>Grabación</h3>
+        <p>Graba tu sesión y exporta en MP3 o MIDI para compartir.</p>
+        <span class="feat-tag">✦ Premium</span>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🌟</div>
+        <h3>Canciones guiadas</h3>
+        <p>Las teclas se iluminan y te guían nota a nota en tus canciones favoritas.</p>
+        <span class="feat-tag">✦ Premium</span>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🎓</div>
+        <h3>Lecciones interactivas</h3>
+        <p>Aprende desde cero con lecciones estructuradas para principiantes.</p>
+        <span class="feat-tag">✦ Premium</span>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">🎚️</div>
+        <h3>Efectos de audio</h3>
+        <p>Reverb, delay y sustain para un sonido más rico y profesional.</p>
+        <span class="feat-tag">✦ Premium</span>
+      </div>
+      <div class="feat">
+        <div class="feat-icon">📱</div>
+        <h3>Compatible móvil</h3>
+        <p>Toca en cualquier dispositivo. Diseño adaptado a pantallas táctiles.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="premium-card">
+      <h4>✦ Plan Premium</h4>
+      <div class="premium-price">4,99€ <span>/ mes</span></div>
+      <ul class="premium-list">
+        <li><span class="check">✓</span> Sin anuncios</li>
+        <li><span class="check">✓</span> Grabación MP3 / MIDI</li>
+        <li><span class="check">✓</span> Canciones guiadas</li>
+        <li><span class="check">✓</span> 7 octavas completas</li>
+        <li><span class="check">✓</span> Efectos reverb & delay</li>
+        <li><span class="check">✓</span> Lecciones interactivas</li>
+        <li><span class="check">✓</span> Soporte prioritario</li>
+      </ul>
+      <button class="upgrade-btn">Probar gratis 7 días</button>
+      <p class="trial-note">Sin tarjeta de crédito • Cancela cuando quieras</p>
+    </div>
+
+    <div class="donate-card">
+      <p>¿Te gusta PianoOnline?<br><strong style="color:var(--text)">Invítanos a un café</strong> ☕ y ayúdanos a mantener el servicio gratuito.</p>
+      <button class="donate-btn">☕ Donar con Ko-fi</button>
+    </div>
+
+    <div class="ad-side">
+      <div class="ad-icon">📢</div>
+      <span>Google AdSense</span>
+      <span>160 × 320</span>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-links">
+    <a href="#">Inicio</a>
+    <a href="#">Lecciones</a>
+    <a href="#">Canciones</a>
+    <a href="#">Premium</a>
+    <a href="#">Contacto</a>
+    <a href="#">Privacidad</a>
+    <a href="#">Términos</a>
+  </div>
+  <div class="footer-copy">© 2026 PianoOnline.es — Hecho con ♥ en España</div>
+</footer>
+
+<script>
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let octave = 4;
+let instrument = 'piano';
+let volume = 0.7;
+
+const noteNames = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const whiteNotes = ['C','D','E','F','G','A','B'];
+const blackConfig = { 'C#':0,'D#':1,'F#':3,'G#':4,'A#':5 };
+
+const keyboardMap = {
+  'a':'C','w':'C#','s':'D','e':'D#','d':'E','f':'F',
+  't':'F#','g':'G','y':'G#','h':'A','u':'A#','j':'B',
+  'k':'C2','o':'C#2','l':'D2','p':'D#2'
+};
+
+function noteFreq(note, oct) {
+  const idx = noteNames.indexOf(note);
+  return 440 * Math.pow(2, ((oct - 4) * 12 + idx - 9) / 12);
+}
+
+function playSound(freq) {
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  const now = audioCtx.currentTime;
+  gain.gain.setValueAtTime(0, now);
+  gain.gain.linearRampToValueAtTime(volume * 0.5, now + 0.01);
+
+  if (instrument === 'piano') {
+    osc.type = 'triangle';
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
+    osc.stop(now + 1.7);
+  } else if (instrument === 'organ') {
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(volume * 0.4, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 2.2);
+    osc.stop(now + 2.3);
+  } else {
+    osc.type = 'sawtooth';
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.0);
+    osc.stop(now + 1.1);
+  }
+
+  osc.frequency.setValueAtTime(freq, now);
+  osc.start(now);
+}
+
+function triggerNote(note, oct, el) {
+  playSound(noteFreq(note, oct));
+  showNote(note, oct);
+  el.classList.add('pressed');
+  setTimeout(() => el.classList.remove('pressed'), 200);
+}
+
+function showNote(note, oct) {
+  const freq = Math.round(noteFreq(note, oct));
+  document.getElementById('note-display').innerHTML =
+    `<span class="note-badge">${note}${oct}</span>
+     <span style="font-size:13px;color:var(--muted)">${freq} Hz</span>`;
+}
+
+function buildPiano() {
+  const piano = document.getElementById('piano');
+  piano.innerHTML = '';
+  const oct = octave;
+
+  whiteNotes.forEach((note, i) => {
+    const k = document.createElement('div');
+    k.className = 'white-key';
+    k.dataset.note = note;
+    k.dataset.oct = oct;
+    const lbl = document.createElement('span');
+    lbl.className = 'klabel';
+    lbl.textContent = note + oct;
+    k.appendChild(lbl);
+    k.addEventListener('mousedown', () => triggerNote(note, oct, k));
+    k.addEventListener('touchstart', e => { e.preventDefault(); triggerNote(note, oct, k); });
+    piano.appendChild(k);
+  });
+
+  Object.entries(blackConfig).forEach(([note, wi]) => {
+    const k = document.createElement('div');
+    k.className = 'black-key';
+    k.dataset.note = note;
+    k.dataset.oct = oct;
+    k.style.left = (wi * 48 + 33) + 'px';
+    const lbl = document.createElement('span');
+    lbl.className = 'klabel';
+    lbl.textContent = note;
+    k.appendChild(lbl);
+    k.addEventListener('mousedown', e => { e.stopPropagation(); triggerNote(note, oct, k); });
+    k.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); triggerNote(note, oct, k); });
+    piano.appendChild(k);
+  });
+}
+
+function setInstrument(ins, btn) {
+  instrument = ins;
+  document.querySelectorAll('.ins-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function changeOctave(d) {
+  octave = Math.max(2, Math.min(6, octave + d));
+  document.getElementById('oct-label').textContent = octave;
+  buildPiano();
+}
+
+function setVolume(v) {
+  volume = v / 100;
+  document.getElementById('vol-label').textContent = v + '%';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.repeat) return;
+  const k = e.key.toLowerCase();
+  if (k === 'z') { changeOctave(-1); return; }
+  if (k === 'x') { changeOctave(1); return; }
+  if (!keyboardMap[k]) return;
+  let note = keyboardMap[k];
+  let oct = octave;
+  if (note.endsWith('2')) { note = note.slice(0,-1); oct = octave + 1; }
+  document.querySelectorAll('[data-note]').forEach(el => {
+    if (el.dataset.note === note && parseInt(el.dataset.oct) === oct) {
+      triggerNote(note, oct, el);
+    }
+  });
+});
+
+buildPiano();
+</script>
+</body>
+</html>
